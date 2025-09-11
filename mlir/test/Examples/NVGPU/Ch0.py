@@ -1,50 +1,65 @@
-# RUN: env SUPPORT_LIB=%mlir_cuda_runtime \
-# RUN:   %PYTHON %s | FileCheck %s
+# Ch0.py (trace-only variant): build IR, do not run, and dump IR per pass.
 
-# ===----------------------------------------------------------------------===//
-#  Chapter 0 : Hello World
-# ===----------------------------------------------------------------------===//
-#
-# This program demonstrates Hello World:
-#   1. Build MLIR function with arguments
-#   2. Build MLIR GPU kernel
-#   3. Print from a GPU thread
-#   4. Pass arguments, JIT compile and run the MLIR function
-#
-# ===----------------------------------------------------------------------===//
-
-
+import os
+from mlir import ir
+from mlir.passmanager import PassManager
 from mlir.dialects import gpu
-from tools.nvdsl import *
+from tools.nvdsl import NVDSL
 
+TRACE_DIR = os.environ.get("NVDSL_TRACE_DIR", "./mlir-nvdsl-trace")
+TARGET_CHIP = os.environ.get("NVDSL_CHIP", "sm_90a")
+TARGET_PTX  = os.environ.get("NVDSL_PTX", "+ptx87")  # e.g., +ptx80, +ptx86, +ptx87
 
-# 1. The decorator generates a MLIR func.func.
-# Everything inside the Python function becomes the body of the func.
-# The decorator also translates `alpha` to an `index` type.
 @NVDSL.mlir_func
 def main(alpha):
-    # 2. The decorator generates a MLIR gpu.launch.
-    # Everything inside the Python function becomes the body of the gpu.launch.
-    # This allows for late outlining of the GPU kernel, enabling optimizations
-    # like constant folding from host to device.
     @NVDSL.mlir_gpu_launch(grid=(1, 1, 1), block=(4, 1, 1))
     def kernel():
         tidx = gpu.thread_id(gpu.Dimension.x)
-        # + operator generates arith.addi
         myValue = alpha + tidx
-        # Print from a GPU thread
         gpu.printf("GPU thread %llu has %llu\n", [tidx, myValue])
-
-    # 3. Call the GPU kernel
     kernel()
 
+if __name__ == "__main__":
+    # IMPORTANT: make sure the decorator returns (module, engine) and does not invoke.
+    os.environ["NVDSL_COMPILE_ONLY"] = "1"
 
-alpha = 100
-# 4. The `mlir_func` decorator JIT compiles the IR and executes the MLIR function.
-main(alpha)
+    alpha = 100
+    mod, engine = main(alpha)   # <-- only builds & JIT-compiles; does not run
+    
+    if False:
+        # Build a pass pipeline and enable verbose IR printing.
+        #
+        # gpu-lower-to-nvvm-pipeline handles the typical path:
+        #   {arith,memref,scf,vector,gpu,nvgpu} -> NVVM + host LLVM dialect
+        # Add gpu-module-to-binary{format=isa} to attach PTX text into the IR
+        # (as a gpu.binary attribute) without ever launching.
+        with ir.Context() as ctx, ir.Location.unknown():
 
+            pipeline = (
+                "builtin.module("
+                    f"gpu-lower-to-nvvm-pipeline{{cubin-chip={TARGET_CHIP} cubin-features={TARGET_PTX} opt-level=3}} , "
+                    f"gpu.module(gpu-module-to-binary{{format=isa cubin-chip={TARGET_CHIP} cubin-features={TARGET_PTX} opt-level=3}})"
+                ")"
+            )
 
-# CHECK: GPU thread 0 has 100
-# CHECK: GPU thread 1 has 101
-# CHECK: GPU thread 2 has 102
-# CHECK: GPU thread 3 has 103
+            pm = PassManager.parse(pipeline)
+
+            # Turn on per-pass IR dumps (before & after), include debug locs, and write a tree of .mlir files.
+            pm.enable_ir_printing(
+                print_before_all=True,
+                print_after_all=True,
+                print_after_change=False,
+                print_after_failure=True,
+                print_module_scope=True,
+                enable_debug_info=True,
+                large_elements_limit=64,
+                tree_printing_dir_path=TRACE_DIR,
+            )
+            pm.enable_timing()
+
+            # Run the pipeline over the module we just built.
+            pm.run(mod.operation)
+
+            # Optional: also print the final IR to stdout (comment out if too chatty).
+            print("\n// === Final IR after pipeline ===")
+            print(mod)

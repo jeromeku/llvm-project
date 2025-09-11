@@ -408,7 +408,7 @@ class NVDSL:
                     )
 
             # Generate MLIR Context and start generating IR
-            with ir.Context(), ir.Location.unknown():
+            with ir.Context() as ctx, ir.Location.unknown():
                 types = []
                 for arg in args:
                     types.append(get_mlir_ty(arg))
@@ -428,7 +428,7 @@ class NVDSL:
                         func.ReturnOp([])
 
                 # Save IR in a file
-                # saveIR(module)
+                saveIR(module)
 
                 # Verify the module
                 module.operation.verify()
@@ -443,8 +443,27 @@ class NVDSL:
                 compiler = nvgpucompiler.NvgpuCompiler(
                     options, opt_level=3, shared_libs=[support_lib]
                 )
-                engine = compiler.compile_and_jit(module)
+                if os.getenv("NVDSL_COMPILE_ONLY") == "1":
+                    from mlir.passmanager import PassManager
+                    pm = PassManager.parse(compiler.pipeline)
+                    ctx.enable_multithreading(False)
 
+                    # Print before/after every pass, include locations, and dump each pass’s IR to a directory.
+                    pm.enable_ir_printing(
+                        print_before_all=True,
+                        print_after_all=True,
+                        print_module_scope=True,
+                        print_after_change=False,
+                        print_after_failure=True,
+                        enable_debug_info=True,
+                        tree_printing_dir_path=os.environ.get("NVDSL_TRACE_DIR")
+                    )
+                    pm.run(module.operation)
+                    return module, compiler
+                
+                engine = compiler.compile_and_jit(module)
+            
+            
             # Convert input arguments to MLIR arguments
             newArgs = get_mlir_func_obj_ty(args)
 
