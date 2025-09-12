@@ -11,8 +11,9 @@ from tools.nvgpucompiler import NvgpuCompiler
 TRACE_DIR = os.environ.get("NVDSL_TRACE_DIR", "./mlir-nvdsl-trace")
 TARGET_CHIP = os.environ.get("NVDSL_CHIP", "sm_90a")
 TARGET_PTX  = os.environ.get("NVDSL_PTX", "+ptx87")  # e.g., +ptx80, +ptx86, +ptx87
+COMPILE_ONLY = True
 
-
+@NVDSL.mlir_func(save_ir=True, compile_only=True)
 def main(alpha):
     @NVDSL.mlir_gpu_launch(grid=(1, 1, 1), block=(4, 1, 1))
     def kernel():
@@ -22,16 +23,18 @@ def main(alpha):
     kernel()
 
 if __name__ == "__main__":
-    # IMPORTANT: make sure the decorator returns (module, engine) and does not invoke.
-    os.environ["NVDSL_COMPILE_ONLY"] = "1"
 
     alpha = 100
-    main = NVDSL.mlir_func(main, save_ir=True, compile_only=True)
-    module, compiler = main(alpha)
-    module: ir.Module
-    compiler: NvgpuCompiler
+    results = main(alpha)
 
-    with module.ctx as ctx, ir.Location.unknown():
+    if COMPILE_ONLY:
+        module, compiler = results
+        module: ir.Module
+        compiler: NvgpuCompiler
+    breakpoint()
+
+    with module.context as ctx, ir.Location.unknown():
+        print(f"Compiler pipeline: {compiler.pipeline}")
         pm = PassManager.parse(compiler.pipeline)
         ctx.enable_multithreading(False)
         ctx.emit_error_diagnostics = True
