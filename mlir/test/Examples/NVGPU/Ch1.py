@@ -16,11 +16,14 @@
 
 from mlir import ir
 from mlir.dialects import gpu, memref
-from tools.nvdsl import *
+from tools.nvdsl import NVDSL
 import numpy as np
+import os
+from utils import run_pipeline
 
+COMPILE_ONLY = os.environ.get("NVDSL_COMPILE_ONLY", "0") == "1"
 
-@NVDSL.mlir_func
+@NVDSL.mlir_func(compile_only=COMPILE_ONLY)
 def saxpy(x, y, alpha):
     # 1. Use MLIR GPU dialect to allocate and copy memory
     token_ty = gpu.AsyncTokenType.get()
@@ -56,11 +59,14 @@ N = 32
 alpha = 2.0
 x = np.random.randn(M, N).astype(np.float32)
 y = np.ones((M, N), np.float32)
-saxpy(x, y, alpha)
-
-#  4. Verify MLIR with reference computation
-ref = np.ones((M, N), np.float32)
-ref += x * alpha
-np.testing.assert_allclose(y, ref, rtol=5e-03, atol=1e-01)
-print("PASS")
-# CHECK-NOT: Mismatched elements
+if COMPILE_ONLY:
+    module, compiler = saxpy(x, y, alpha)
+    run_pipeline(module, compiler.pipeline)
+else:
+    raise NotImplementedError("Run using CLI runner")    
+    #  4. Verify MLIR with reference computation
+    ref = np.ones((M, N), np.float32)
+    ref += x * alpha
+    np.testing.assert_allclose(y, ref, rtol=5e-03, atol=1e-01)
+    print("PASS")
+    # CHECK-NOT: Mismatched elements

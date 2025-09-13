@@ -327,7 +327,7 @@ class NVDSL:
         return decorator
 
     @staticmethod
-    def mlir_func(save_ir: bool = True, compile_only: bool = False):
+    def mlir_func(save_ir: str = None, compile_only: bool = False):
         def decorator(funcBody):
             @functools.wraps(funcBody)
             def wrapper(*args, **kwargs):
@@ -338,7 +338,7 @@ class NVDSL:
                     if True:  # self.saveIR:
                         # print(mlir_nvgpu_module)
                         original_stdout = sys.stdout
-                        with open("nvdsl.mlir", "w") as f:
+                        with open(save_ir, "w") as f:
                             sys.stdout = f
                             print(module)
                             sys.stdout = original_stdout
@@ -430,7 +430,7 @@ class NVDSL:
                             func.ReturnOp([])
 
                     # Save IR in a file
-                    if save_ir:
+                    if save_ir is not None:
                         saveIR(module)
 
                     # Verify the module
