@@ -23,7 +23,7 @@ from utils import run_pipeline
 
 COMPILE_ONLY = os.environ.get("NVDSL_COMPILE_ONLY", "0") == "1"
 
-@NVDSL.mlir_func(compile_only=COMPILE_ONLY)
+@NVDSL.mlir_func(compile_only=COMPILE_ONLY, cubin_format="isa")
 def saxpy(x, y, alpha):
     # 1. Use MLIR GPU dialect to allocate and copy memory
     token_ty = gpu.AsyncTokenType.get()
@@ -61,6 +61,8 @@ x = np.random.randn(M, N).astype(np.float32)
 y = np.ones((M, N), np.float32)
 if COMPILE_ONLY:
     module, compiler = saxpy(x, y, alpha)
+    pipeline = compiler.pipeline
+    breakpoint()
     run_pipeline(module, compiler.pipeline)
 else:
     raise NotImplementedError("Run using CLI runner")    

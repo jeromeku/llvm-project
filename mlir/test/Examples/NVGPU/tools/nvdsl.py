@@ -46,9 +46,7 @@ def get_mlir_func_obj_ty(inputArgs):
         elif isinstance(arg, float):
             args.append(c_float_p(arg))
         elif isinstance(arg, np.ndarray):
-            args.append(
-                ctypes.pointer(ctypes.pointer(rt.get_ranked_memref_descriptor(arg)))
-            )
+            args.append(ctypes.pointer(ctypes.pointer(rt.get_ranked_memref_descriptor(arg))))
         else:
             raise NotImplementedError(arg)
     return args
@@ -73,9 +71,7 @@ class Mbarriers:
         if predicate is None:
             nvgpu.mbarrier_init(self.mbar_group_op, count_op, self.id_op)
         else:
-            nvgpu.mbarrier_init(
-                self.mbar_group_op, count_op, self.id_op, predicate=predicate
-            )
+            nvgpu.mbarrier_init(self.mbar_group_op, count_op, self.id_op, predicate=predicate)
 
     def arrive(self, txcount: int = 0, predicate=None):
         if txcount != 0:
@@ -138,9 +134,7 @@ class TMA:
     def create_descriptor(self, device_ptr):
         tma_descriptor_ty = self.tensormap_descriptor_ty
         device_unranked_memref = memref.CastOp(
-            ir.UnrankedMemRefType.get(
-                self.memref_ty.element_type, self.memref_ty.memory_space
-            ),
+            ir.UnrankedMemRefType.get(self.memref_ty.element_type, self.memref_ty.memory_space),
             device_ptr,
         )
         self.tma_descriptor = nvgpu.TmaCreateDescriptorOp(
@@ -242,17 +236,13 @@ class WGMMAMatrix:
         lhs = nvgpu.warpgroup_generate_descriptor(
             self.wgmma_ty, self.smem, self.desc.tma_descriptor
         )
-        rhs = nvgpu.warpgroup_generate_descriptor(
-            rhs.wgmma_ty, rhs.smem, rhs.desc.tma_descriptor
-        )
+        rhs = nvgpu.warpgroup_generate_descriptor(rhs.wgmma_ty, rhs.smem, rhs.desc.tma_descriptor)
         return [lhs, rhs]
 
     def __iadd__(self, matmulResult):
         lhs = matmulResult[0]
         rhs = matmulResult[1]
-        acc_op = nvgpu.WarpgroupMmaOp(
-            self.acc_op.type, lhs, rhs, self.acc_op, transposeB=True
-        )
+        acc_op = nvgpu.WarpgroupMmaOp(self.acc_op.type, lhs, rhs, self.acc_op, transposeB=True)
         return WGMMAMatrix(WGMMAType.Accumulator, acc_op=acc_op)
 
 
@@ -266,9 +256,7 @@ def get_dynamic_shared_memory(shape=None, ty=None, offset: int = 0):
         return dynamic_smem
     memref_ty = ir.MemRefType.get(shape, ty, memory_space=smem_space)
     return memref.view(
-        ir.MemRefType.get(
-            memref_ty.shape, memref_ty.element_type, memory_space=smem_space
-        ),
+        ir.MemRefType.get(memref_ty.shape, memref_ty.element_type, memory_space=smem_space),
         dynamic_smem,
         const(offset),
         [],
@@ -327,7 +315,13 @@ class NVDSL:
         return decorator
 
     @staticmethod
-    def mlir_func(save_ir: str = None, compile_only: bool = False):
+    def mlir_func(
+        save_ir: str = None,
+        compile_only: bool = False,
+        cubin_format: str = "bin",
+        cubin_chip: str = "sm_90a",
+        ptx_version="87",
+    ):
         def decorator(funcBody):
             @functools.wraps(funcBody)
             def wrapper(*args, **kwargs):
@@ -349,23 +343,17 @@ class NVDSL:
                     if arith._is_float_type(lhs.type) and arith._is_float_type(rhs.type):
                         op += "F"
                         if op.startswith("Cmp"):
-                            predicateAttr = getattr(arith, f"CmpFPredicate").__dict__[
-                                predAtt
-                            ]
-                    elif arith._is_integer_like_type(
+                            predicateAttr = getattr(arith, f"CmpFPredicate").__dict__[predAtt]
+                    elif arith._is_integer_like_type(lhs.type) and arith._is_integer_like_type(
                         lhs.type
-                    ) and arith._is_integer_like_type(lhs.type):
+                    ):
                         if op == "Div" or op == "Rem":
                             op += "U"
                         op += "I"
                         if op.startswith("Cmp"):
-                            predicateAttr = getattr(arith, f"CmpIPredicate").__dict__[
-                                predAtt
-                            ]
+                            predicateAttr = getattr(arith, f"CmpIPredicate").__dict__[predAtt]
                     else:
-                        raise NotImplementedError(
-                            f"Unsupported '{op}' operands: {lhs}, {rhs}"
-                        )
+                        raise NotImplementedError(f"Unsupported '{op}' operands: {lhs}, {rhs}")
 
                     if op.startswith("Cmp"):
                         op = getattr(arith, f"{op}Op")
@@ -402,11 +390,7 @@ class NVDSL:
                     __or__ = partialmethod(_binary_op, op="Or")
 
                     def __str__(self):
-                        return (
-                            super()
-                            .__str__()
-                            .replace(ir.Value.__name__, ArithValue.__name__)
-                        )
+                        return super().__str__().replace(ir.Value.__name__, ArithValue.__name__)
 
                 # Generate MLIR Context and start generating IR
                 with ir.Context() as ctx, ir.Location.unknown():
@@ -437,14 +421,14 @@ class NVDSL:
                     module.operation.verify()
 
                     # Compile and JIT MLIR module
-                    options = f"cubin-chip=sm_90a cubin-features=+ptx87 opt-level=3"
+                    options = f"cubin-format={cubin_format} cubin-chip={cubin_chip} cubin-features=+ptx{ptx_version} opt-level=3"
                     support_lib = os.getenv("SUPPORT_LIB", None)
                     assert support_lib is not None, "Support lib not found"
                     if not os.path.exists(support_lib):
                         raise FileNotFoundError(
                             errno.ENOENT, os.strerror(errno.ENOENT), support_lib
                         )
-                    
+
                     compiler = nvgpucompiler.NvgpuCompiler(
                         options, opt_level=3, shared_libs=[support_lib]
                     )
@@ -459,4 +443,5 @@ class NVDSL:
                 return result
 
             return wrapper
+
         return decorator
