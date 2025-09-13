@@ -13,7 +13,9 @@
 #
 # ===----------------------------------------------------------------------===//
 
-
+# see /home/jeromeku/mlir/llvm-project/mlir/lib/Dialect/GPU/Pipelines/GPUToNVVMPipeline.cpp
+#/home/jeromeku/mlir/llvm-project/mlir/lib/Dialect/GPU/Transforms/ModuleToBinary.cpp
+# /home/jeromeku/mlir/llvm-project/mlir/include/mlir/Conversion/GPUToNVVM/GPUToNVVMPass.h
 from mlir import ir
 from mlir.dialects import gpu, memref
 from tools.nvdsl import NVDSL
