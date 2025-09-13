@@ -7,6 +7,7 @@ from mlir.dialects import gpu
 from mlir.passmanager import PassManager
 from tools.nvdsl import NVDSL
 from tools.nvgpucompiler import NvgpuCompiler
+from contextlib import contextmanager
 
 TRACE_DIR = os.environ.get("NVDSL_TRACE_DIR", "./mlir-nvdsl-trace")
 TARGET_CHIP = os.environ.get("NVDSL_CHIP", "sm_90a")
@@ -22,15 +23,23 @@ def main(alpha):
         gpu.printf("GPU thread %llu has %llu\n", [tidx, myValue])
     kernel()
 
-def init_cuda():
-    from cuda import cuda
-    cuda.cuInit(0); dev = cuda.cuDeviceGet(0)[1]
-    ctx  = cuda.cuDevicePrimaryCtxRetain(dev)[1]
-    cuda.cuCtxSetCurrent(ctx)
+@contextmanager
+def cuda_context(device=0):
+    # import ctypes
+    # cuda = ctypes.CDLL("libcuda.so")
+    # cuda.cuInit(0)
+    from cuda.core.experimental import Device
+    dev0 = Device(device)
+    dev0.set_current()
+    yield dev0
 
 if __name__ == "__main__":
-
+    # import ctypes, os
+    # lib = ctypes.CDLL(os.environ["SUPPORT_LIB"])
+    # lib.mgpuSetDefaultDevice.argtypes = [ctypes.c_int]
+    # lib.mgpuSetDefaultDevice(0)
     alpha = 100
+
     results = main(alpha)
 
     if COMPILE_ONLY:

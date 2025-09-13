@@ -437,7 +437,7 @@ class NVDSL:
                     module.operation.verify()
 
                     # Compile and JIT MLIR module
-                    options = f"cubin-chip=sm_90a cubin-features=+ptx80 opt-level=3"
+                    options = f"cubin-chip=sm_90a cubin-features=+ptx87 opt-level=3"
                     support_lib = os.getenv("SUPPORT_LIB", None)
                     assert support_lib is not None, "Support lib not found"
                     if not os.path.exists(support_lib):
@@ -451,14 +451,11 @@ class NVDSL:
 
                     if compile_only:
                         return module, compiler
-                    breakpoint()
                     engine = compiler.compile_and_jit(module)
-                breakpoint()                            
                 # Convert input arguments to MLIR arguments
                 newArgs = get_mlir_func_obj_ty(args)
                 # Run the compiled program
                 engine.invoke(function_name, *newArgs)
-                breakpoint()
                 return result
 
             return wrapper
