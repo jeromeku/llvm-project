@@ -11,9 +11,9 @@ from tools.nvgpucompiler import NvgpuCompiler
 TRACE_DIR = os.environ.get("NVDSL_TRACE_DIR", "./mlir-nvdsl-trace")
 TARGET_CHIP = os.environ.get("NVDSL_CHIP", "sm_90a")
 TARGET_PTX  = os.environ.get("NVDSL_PTX", "+ptx87")  # e.g., +ptx80, +ptx86, +ptx87
-COMPILE_ONLY = True
+COMPILE_ONLY = os.environ.get("NVDSL_COMPILE_ONLY", "0") == "1"
 
-@NVDSL.mlir_func(save_ir=True, compile_only=True)
+@NVDSL.mlir_func(save_ir=True, compile_only=COMPILE_ONLY)
 def main(alpha):
     @NVDSL.mlir_gpu_launch(grid=(1, 1, 1), block=(4, 1, 1))
     def kernel():
@@ -21,6 +21,12 @@ def main(alpha):
         myValue = alpha + tidx
         gpu.printf("GPU thread %llu has %llu\n", [tidx, myValue])
     kernel()
+
+def init_cuda():
+    from cuda import cuda
+    cuda.cuInit(0); dev = cuda.cuDeviceGet(0)[1]
+    ctx  = cuda.cuDevicePrimaryCtxRetain(dev)[1]
+    cuda.cuCtxSetCurrent(ctx)
 
 if __name__ == "__main__":
 
@@ -31,21 +37,20 @@ if __name__ == "__main__":
         module, compiler = results
         module: ir.Module
         compiler: NvgpuCompiler
-    breakpoint()
 
-    with module.context as ctx, ir.Location.unknown():
-        print(f"Compiler pipeline: {compiler.pipeline}")
-        pm = PassManager.parse(compiler.pipeline)
-        ctx.enable_multithreading(False)
-        ctx.emit_error_diagnostics = True
-        # Print before/after every pass, include locations, and dump each pass’s IR to a directory.
-        pm.enable_ir_printing(
-            print_before_all=True,
-            print_after_all=True,
-            print_module_scope=True,
-            print_after_change=False,
-            print_after_failure=True,
-            enable_debug_info=True,
-            tree_printing_dir_path=os.environ.get("NVDSL_TRACE_DIR")
-        )
-        pm.run(module.operation)
+        with module.context as ctx, ir.Location.unknown():
+            print(f"Compiler pipeline: {compiler.pipeline}")
+            pm = PassManager.parse(compiler.pipeline)
+            ctx.enable_multithreading(False)
+            ctx.emit_error_diagnostics = True
+            # Print before/after every pass, include locations, and dump each pass’s IR to a directory.
+            pm.enable_ir_printing(
+                print_before_all=True,
+                print_after_all=True,
+                print_module_scope=True,
+                print_after_change=False,
+                print_after_failure=True,
+                enable_debug_info=True,
+                tree_printing_dir_path=os.environ.get("NVDSL_TRACE_DIR")
+            )
+            pm.run(module.operation)

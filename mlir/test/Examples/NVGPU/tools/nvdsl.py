@@ -410,6 +410,7 @@ class NVDSL:
 
                 # Generate MLIR Context and start generating IR
                 with ir.Context() as ctx, ir.Location.unknown():
+                    ctx.emit_error_diagnostics = True
                     types = []
                     for arg in args:
                         types.append(get_mlir_ty(arg))
@@ -437,26 +438,27 @@ class NVDSL:
 
                     # Compile and JIT MLIR module
                     options = f"cubin-chip=sm_90a cubin-features=+ptx80 opt-level=3"
-                    support_lib = os.getenv("SUPPORT_LIB")
+                    support_lib = os.getenv("SUPPORT_LIB", None)
+                    assert support_lib is not None, "Support lib not found"
                     if not os.path.exists(support_lib):
                         raise FileNotFoundError(
                             errno.ENOENT, os.strerror(errno.ENOENT), support_lib
                         )
+                    
                     compiler = nvgpucompiler.NvgpuCompiler(
                         options, opt_level=3, shared_libs=[support_lib]
                     )
 
                     if compile_only:
                         return module, compiler
-                    
+                    breakpoint()
                     engine = compiler.compile_and_jit(module)
-                            
+                breakpoint()                            
                 # Convert input arguments to MLIR arguments
                 newArgs = get_mlir_func_obj_ty(args)
-
                 # Run the compiled program
                 engine.invoke(function_name, *newArgs)
-
+                breakpoint()
                 return result
 
             return wrapper
