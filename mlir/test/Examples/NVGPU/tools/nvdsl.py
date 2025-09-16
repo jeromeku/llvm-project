@@ -428,9 +428,13 @@ class NVDSL:
                         raise FileNotFoundError(
                             errno.ENOENT, os.strerror(errno.ENOENT), support_lib
                         )
-
+                    support_libs = [
+                        "/home/jeromeku/mlir/llvm-project/build/lib/libmlir_cuda_runtime.so",
+                        "/home/jeromeku/mlir/llvm-project/build/lib/libmlir_runner_utils.so",
+                        "/home/jeromeku/mlir/llvm-project/build/lib/libmlir_c_runner_utils.so",
+                    ]
                     compiler = nvgpucompiler.NvgpuCompiler(
-                        options, opt_level=3, shared_libs=[support_lib]
+                        options, opt_level=3, shared_libs=support_libs
                     )
 
                     if compile_only:

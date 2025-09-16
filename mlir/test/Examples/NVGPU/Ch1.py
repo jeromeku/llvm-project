@@ -61,16 +61,16 @@ N = 32
 alpha = 2.0
 x = np.random.randn(M, N).astype(np.float32)
 y = np.ones((M, N), np.float32)
-if COMPILE_ONLY:
-    module, compiler = saxpy(x, y, alpha)
-    pipeline = compiler.pipeline
-    breakpoint()
-    run_pipeline(module, compiler.pipeline)
-else:
-    raise NotImplementedError("Run using CLI runner")    
-    #  4. Verify MLIR with reference computation
-    ref = np.ones((M, N), np.float32)
-    ref += x * alpha
-    np.testing.assert_allclose(y, ref, rtol=5e-03, atol=1e-01)
-    print("PASS")
-    # CHECK-NOT: Mismatched elements
+# if COMPILE_ONLY:
+saxpy(x, y, alpha)
+    # pipeline = compiler.pipeline
+    # breakpoint()
+    # run_pipeline(module, compiler.pipeline)
+# else:
+#     raise NotImplementedError("Run using CLI runner")    
+#     #  4. Verify MLIR with reference computation
+#     ref = np.ones((M, N), np.float32)
+#     ref += x * alpha
+#     np.testing.assert_allclose(y, ref, rtol=5e-03, atol=1e-01)
+#     print("PASS")
+#     # CHECK-NOT: Mismatched elements

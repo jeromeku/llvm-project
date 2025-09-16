@@ -19,7 +19,7 @@ BUILD_LOG="_cmake_build.log"
 # Function to configure the build
 configure_build() {
     echo "Configuring LLVM/MLIR build..."
-    rm -rf "${BUILD_PATH}"
+    # rm -rf "${BUILD_PATH}"
     
     cmake -G Ninja -S llvm -B "${BUILD_PATH}" \
         -DLLVM_ENABLE_PROJECTS="mlir;llvm;lld" \
