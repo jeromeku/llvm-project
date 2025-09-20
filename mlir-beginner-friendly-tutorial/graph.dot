@@ -50,6 +50,18 @@ digraph G {
       }
     }
   }
+  v9 -> v10[style = dashed];
+  v10 -> v11[style = dashed];
+  v11 -> v12[style = dashed];
+  v20 -> v21[style = dashed];
+  v21 -> v22[style = dashed];
+  v12 -> v14[lhead = cluster_13, style = dashed];
+  v14 -> v23[ltail = cluster_13, style = dashed];
+  v30 -> v31[style = dashed];
+  v31 -> v32[style = dashed];
+  v32 -> v33[style = dashed];
+  v23 -> v25[lhead = cluster_24, style = dashed];
+  v25 -> v34[ltail = cluster_24, style = dashed];
   v11:res_cst:s -> v12:arg_cst:n[style = solid];
   v17:res_arg0:s -> v20:arg_arg0:n[style = solid];
   v18:res_arg1:s -> v20:arg_arg1:n[style = solid];
