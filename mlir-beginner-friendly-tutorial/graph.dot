@@ -1,0 +1,71 @@
+digraph G {
+  compound = true;
+  subgraph cluster_1 {
+    v2 [label = " ", shape = plain];
+    label = "builtin.module : ()\l";
+    subgraph cluster_3 {
+      v4 [label = " ", shape = plain];
+      label = "";
+      subgraph cluster_5 {
+        v6 [label = " ", shape = plain];
+        label = "func.func : ()\lfunction_type: () -\> tensor\<256x102...\lsym_name: \"main\"\l";
+        subgraph cluster_7 {
+          v8 [label = " ", shape = plain];
+          label = "";
+          v9 [fillcolor = "0.000000 0.3 0.95", label = "{tensor.empty\l|{<res_0> %0 tensor\<256x512xf32\>}}", shape = Mrecord, style = filled];
+          v10 [fillcolor = "0.000000 0.3 0.95", label = "{tensor.empty\l|{<res_1> %1 tensor\<512x1024xf32\>}}", shape = Mrecord, style = filled];
+          v11 [fillcolor = "0.076923 0.3 0.95", label = "{arith.constant\l\lvalue: 0.000000e+00 : f32\l|{<res_cst> %cst f32}}", shape = Mrecord, style = filled];
+          v12 [fillcolor = "0.153846 0.3 0.95", label = "{{<arg_cst> %cst}|tensor.splat\l|{<res_splat> %splat tensor\<256x1024xf32\>}}", shape = Mrecord, style = filled];
+          subgraph cluster_13 {
+            v14 [label = " ", shape = plain];
+            label = "linalg.matmul : (tensor<256x1024xf32>)\lindexing_maps: [affine_map\<(d0, d1,...\loperandSegmentSizes: array\<i32: 2, 1\>\l";
+            subgraph cluster_15 {
+              v16 [label = " ", shape = plain];
+              label = "";
+              v17 [label = "<res_arg0> %arg0 f32", shape = Mrecord];
+              v18 [label = "<res_arg1> %arg1 f32", shape = Mrecord];
+              v19 [label = "<res_arg2> %arg2 f32", shape = Mrecord];
+              v20 [fillcolor = "0.230769 0.3 0.95", label = "{{<arg_arg0> %arg0|<arg_arg1> %arg1}|arith.mulf\l\lfastmath: #arith.fastmath\<none...\l|{<res_5> %5 f32}}", shape = Mrecord, style = filled];
+              v21 [fillcolor = "0.307692 0.3 0.95", label = "{{<arg_arg2> %arg2|<arg_5> %5}|arith.addf\l\lfastmath: #arith.fastmath\<none...\l|{<res_6> %6 f32}}", shape = Mrecord, style = filled];
+              v22 [fillcolor = "0.384615 0.3 0.95", label = "{{<arg_6> %6}|linalg.yield\l}", shape = Mrecord, style = filled];
+            }
+          }
+          v23 [fillcolor = "0.000000 0.3 0.95", label = "{tensor.empty\l|{<res_3> %3 tensor\<256x1024xf32\>}}", shape = Mrecord, style = filled];
+          subgraph cluster_24 {
+            v25 [label = " ", shape = plain];
+            label = "linalg.generic : (tensor<256x1024xf32>)\lindexing_maps: [affine_map\<(d0, d1)...\literator_types: [#linalg.iterator_ty...\loperandSegmentSizes: array\<i32: 1, 1\>\l";
+            subgraph cluster_26 {
+              v27 [label = " ", shape = plain];
+              label = "";
+              v28 [label = "<res_in> %in f32", shape = Mrecord];
+              v29 [label = "<res_out> %out f32", shape = Mrecord];
+              v30 [fillcolor = "0.076923 0.3 0.95", label = "{arith.constant\l\lvalue: 0.000000e+00 : f32\l|{<res_cst_0> %cst_0 f32}}", shape = Mrecord, style = filled];
+              v31 [fillcolor = "0.538462 0.3 0.95", label = "{{<arg_in> %in|<arg_cst_0> %cst_0}|arith.cmpf\l\lfastmath: #arith.fastmath\<none...\lpredicate: 9 : i64\l|{<res_5> %5 i1}}", shape = Mrecord, style = filled];
+              v32 [fillcolor = "0.615385 0.3 0.95", label = "{{<arg_5> %5|<arg_in> %in|<arg_cst_0> %cst_0}|arith.select\l|{<res_6> %6 f32}}", shape = Mrecord, style = filled];
+              v33 [fillcolor = "0.384615 0.3 0.95", label = "{{<arg_6> %6}|linalg.yield\l}", shape = Mrecord, style = filled];
+            }
+          }
+          v34 [fillcolor = "0.769231 0.3 0.95", label = "{{<arg_4> %4}|func.return\l}", shape = Mrecord, style = filled];
+        }
+      }
+    }
+  }
+  v11:res_cst:s -> v12:arg_cst:n[style = solid];
+  v17:res_arg0:s -> v20:arg_arg0:n[style = solid];
+  v18:res_arg1:s -> v20:arg_arg1:n[style = solid];
+  v19:res_arg2:s -> v21:arg_arg2:n[style = solid];
+  v20:res_5:s -> v21:arg_5:n[style = solid];
+  v21:res_6:s -> v22:arg_6:n[style = solid];
+  v9:res_0:s -> v14[lhead = cluster_13, style = solid];
+  v10:res_1:s -> v14[lhead = cluster_13, style = solid];
+  v12:res_splat:s -> v14[lhead = cluster_13, style = solid];
+  v28:res_in:s -> v31:arg_in:n[style = solid];
+  v30:res_cst_0:s -> v31:arg_cst_0:n[style = solid];
+  v31:res_5:s -> v32:arg_5:n[style = solid];
+  v28:res_in:s -> v32:arg_in:n[style = solid];
+  v30:res_cst_0:s -> v32:arg_cst_0:n[style = solid];
+  v32:res_6:s -> v33:arg_6:n[style = solid];
+  v14 -> v25[lhead = cluster_24, ltail = cluster_13, style = solid];
+  v23:res_3:s -> v25[lhead = cluster_24, style = solid];
+  v25 -> v34:arg_4:n[ltail = cluster_24, style = solid];
+}

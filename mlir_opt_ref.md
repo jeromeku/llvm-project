@@ -456,6 +456,7 @@ mlir-opt input.mlir \
 
 ```bash
 mlir-opt demo2-entering-mlir/demo2.mlir --view-op-graph='print-data-flow-edges' --dump-pass-pipeline
+mlir-opt demo2-entering-mlir/demo2.mlir --view-op-graph='print-data-flow-edges' -o /dev/null 2>graph.dot && dot -Tpdf graph.dot > graph.pdf
 # Or:
 mlir-opt input.mlir --dot-cfg-mssa=/tmp/cfg.dot -o /dev/null
 ```
