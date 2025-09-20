@@ -1,18 +1,33 @@
 #!/bin/bash
 
-set -ex
+set -euo pipefail
 
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-LLVM_BIN_DIR=$SCRIPT_DIR/../build/bin
+
+IR_DUMP_DIR="demo3"
+IR_DUMP_TREE="--mlir-print-ir-tree-dir"
+IR_DUMP="--mlir-print-ir-after-all"
+PRINT_PASSES="--print-pipeline-passes"
+
+LLVM_BIN_DIR=${REPO_ROOT}/build/bin
 
 # Clean up demo 2. This is just to put a clean starting point in this folder.
 # linalg-on-tensor is the entry point for this flow and represents the logical
 # computation the user wishes to perform, without any information on the device
 # we are targetting.
-$LLVM_BIN_DIR/mlir-opt \
-    $SCRIPT_DIR/../demo2-entering-mlir/demo2.mlir \
-    -o $SCRIPT_DIR/demo3-0-linalg-on-tensor.mlir
+OP_GRAPH_FLAGS="--view-op-graph= \
+--print-attrs \
+--print-control-flow-edges \                           
+--print-data-flow-edges \
+--print-result-types"                                 
 
+$LLVM_BIN_DIR/mlir-opt ${OP_GRAPH_FLAGS} $SCRIPT_DIR/../demo2-entering-mlir/demo2.mlir
+    # --print-pipeline-passes --dump-pass-pipeline 
+    # --test-print-callgraph --view-op-graph
+
+    # -o $SCRIPT_DIR/demo3-0-linalg-on-tensor.mlir
+exit 0
 # Lower tensors to memrefs. Since we plan on targeting CPUs, we cannot stay at
 # the tensor abstraction since every chunk of data needs to have an allocated
 # buffer somewhere in memory. We can make use of the one-shot-bufferize pass
