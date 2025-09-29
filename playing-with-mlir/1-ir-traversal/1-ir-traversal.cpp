@@ -16,6 +16,7 @@ void printOperation(Operation *op) {
   // Doxygen: https://mlir.llvm.org/doxygen/IR_2Operation_8h.html
 
   /// Implement HERE
+  std::cout << op << "\n";
 }
 
 int main(int argc, char **argv) {
