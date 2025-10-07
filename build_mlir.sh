@@ -6,7 +6,7 @@ set -euo pipefail
 BUILD_PATH="build"
 INSTALL_PATH="install"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-CUDA_HOME="/home/jeromeku/cuda-toolkit"
+CUDA_HOME="/data/jeromeku/cuda-toolkit-13"
 
 # Build flags
 CONFIGURE="0"
@@ -32,8 +32,8 @@ configure_build() {
         -DCMAKE_VERBOSE_MAKEFILE=1 \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
         -DLLVM_CCACHE_BUILD=OFF \
-        -DCMAKE_C_COMPILER=clang-21 \
-        -DCMAKE_CXX_COMPILER=clang++-21 \
+        -DCMAKE_C_COMPILER=clang-22 \
+        -DCMAKE_CXX_COMPILER=clang++-22 \
         -DLLVM_ENABLE_LLD=ON \
         -DLLVM_OPTIMIZED_TABLEGEN=ON \
         -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++ \
