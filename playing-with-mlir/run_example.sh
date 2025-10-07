@@ -37,12 +37,18 @@ set -euo pipefail
 
 SOURCE=${1:-"1-ir-traversal/1-ir-traversal-solution.cpp"}
 INPUT_MLIR=${2:-"1-ir-traversal/1-input1.mlir"}
+quoted_args=""
+if [ "$#" -gt 0 ]; then
+    quoted_args=$(printf '%q ' "$@")
+    quoted_args=${quoted_args//\\|/|}
+    quoted_args=${quoted_args% }   # remove trailing space
+fi
 
 COMPILE_CMD="clang++ ${SOURCE} \
 -fno-exceptions -fno-rtti -o /tmp/playing-with-mlir \
 -I /home/mlir/llvm-project/install/include -L/home/mlir/llvm-project/install/lib \
 -lMLIR -lLLVM -Wl,-rpath=/home/mlir/llvm-project/install/lib"
-RUN_CMD="/tmp/playing-with-mlir ${INPUT_MLIR}"
+RUN_CMD="/tmp/playing-with-mlir ${INPUT_MLIR} ${quoted_args}"
 
 sudo docker run --rm -it -v /home/jeromeku/mlir/llvm-project/playing-with-mlir:/tmp/tutorial \
 -w /tmp/tutorial jokereph/mlir-tutorial:debug \
