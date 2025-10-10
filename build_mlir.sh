@@ -6,7 +6,7 @@ set -euo pipefail
 BUILD_PATH="build"
 INSTALL_PATH="install"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-CUDA_HOME="/data/jeromeku/cuda-toolkit-13"
+# CUDA_HOME="/data/jeromeku/cuda-toolkit-13"
 
 # Build flags
 CONFIGURE="0"
@@ -37,7 +37,7 @@ configure_build() {
         -DLLVM_ENABLE_LLD=ON \
         -DLLVM_OPTIMIZED_TABLEGEN=ON \
         -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++ \
-        -DCMAKE_CUDA_COMPILER="${CUDA_HOME}/bin/nvcc" \
+        -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc" \
         -DCMAKE_INSTALL_PREFIX="${INSTALL_PATH}" \
         2>&1 | tee "${CONFIG_LOG}"
 }
