@@ -1,0 +1,218 @@
+================================================================================
+                   RTTI (Run-Time Type Information) Summary
+================================================================================
+
+WHAT IS RTTI?
+-------------
+C++ feature for runtime type identification and safe type casting
+
+CORE FEATURES:
+  1. typeid operator     - Get type information at runtime
+  2. dynamic_cast        - Safe downcasting with runtime checks  
+  3. Exception handling  - Type-based exception catching
+
+================================================================================
+                           BINARY SIZE IMPACT
+================================================================================
+
+                    WITH RTTI           WITHOUT RTTI (-fno-rtti)
+                    ─────────           ──────────────────────────
+Total Size:         36K                 20K  (44% smaller ✓)
+Text Segment:       15,405 bytes        8,770 bytes
+Data Segment:       1,360 bytes         1,000 bytes
+
+SAVINGS: 16K (6,635 bytes code + 360 bytes data)
+
+================================================================================
+                           WHAT GETS REMOVED
+================================================================================
+
+✗ typeinfo structures      (one per polymorphic class)
+✗ typeinfo name strings    (mangled names: "3Dog", "3Cat", etc.)
+✗ typeinfo pointers        (8 bytes per vtable)
+✗ dynamic_cast code        (runtime type checking logic)
+✗ typeid operator code     (type identification logic)
+
+================================================================================
+                              VTABLE COMPARISON
+================================================================================
+
+WITH RTTI:                          WITHOUT RTTI:
+──────────                          ─────────────
+VTable for Dog:                     VTable for Dog:
++------------------------+          +------------------------+
+| offset_to_top          |          | offset_to_top          |
++------------------------+          +------------------------+
+| typeinfo for Dog*  ←─────────     | Dog::~Dog()            |
++------------------------+    ∣     +------------------------+
+| Dog::~Dog()            |    ∣     | Dog::speak()           |
++------------------------+    ∣     +------------------------+
+| Dog::speak()           |    8     | Dog::get_name()        |
++------------------------+  bytes   +------------------------+
+| Dog::get_name()        |  saved
++------------------------+    ∣
+                              ∣
+Each vtable: 8 bytes larger ─────→  Each vtable: 8 bytes smaller
+
+================================================================================
+                           SYMBOL COMPARISON
+================================================================================
+
+$ nm -C binary-with-rtti | grep typeinfo
+────────────────────────────────────────────────────────────────
+0000000000006c08 V typeinfo for AnimalException
+0000000000006c38 V typeinfo for Cat
+0000000000006c50 V typeinfo for Dog
+0000000000006c20 V typeinfo for Bird
+00000000000042d0 V typeinfo name for AnimalException
+00000000000042e8 V typeinfo name for Cat
+00000000000042ed V typeinfo name for Dog
+
+$ nm -C binary-no-rtti | grep typeinfo
+─────────────────────────────────────────────────────────────────
+(no typeinfo symbols found)
+
+================================================================================
+                         WHAT WORKS / DOESN'T WORK
+================================================================================
+
+                        WITH RTTI          WITHOUT RTTI (-fno-rtti)
+                        ─────────          ─────────────────────────
+typeid(*ptr)            ✅ Works           ❌ Compile error
+dynamic_cast<T*>        ✅ Works           ❌ Compile error
+Virtual functions       ✅ Works           ✅ Works
+static_cast<T*>         ✅ Works           ✅ Works (no runtime check!)
+Exception handling      ✅ Works           ✅ Works
+Type introspection      ✅ Built-in        ❌ Must implement manually
+
+================================================================================
+                        WORKAROUNDS WITHOUT RTTI
+================================================================================
+
+Pattern 1: Type Enum (Recommended)
+───────────────────────────────────
+class Animal {
+    enum class Type { DOG, CAT };
+    virtual Type get_type() const = 0;
+};
+
+class Dog : public Animal {
+    Type get_type() const override { return Type::DOG; }
+};
+
+// Usage - manual check before static_cast
+if (animal->get_type() == Animal::Type::DOG) {
+    Dog* dog = static_cast<Dog*>(animal);  // Safe!
+    dog->bark();
+}
+
+Pattern 2: Compile-time Hash
+─────────────────────────────
+class Dog {
+    static constexpr size_t type_id = compute_hash("Dog");
+    size_t get_type_id() const override { return type_id; }
+};
+
+Pattern 3: Virtual Type Checks
+───────────────────────────────
+class Animal {
+    virtual bool is_dog() const { return false; }
+};
+
+class Dog : public Animal {
+    bool is_dog() const override { return true; }
+};
+
+================================================================================
+                           WHEN TO DISABLE RTTI
+================================================================================
+
+DISABLE (-fno-rtti) when:                KEEP RTTI when:
+─────────────────────────                ───────────────
+✓ Binary size is critical                ✓ Using dynamic_cast/typeid
+✓ Building Python bindings               ✓ Need type introspection
+✓ Platform requires it                   ✓ Debugging polymorphic code
+✓ Want explicit type handling            ✓ Using libraries with RTTI
+✓ Linking with no-RTTI libraries         ✓ Serialization/reflection
+
+================================================================================
+                              CRITICAL WARNINGS
+================================================================================
+
+⚠️  ABI COMPATIBILITY: All linked code must use SAME RTTI setting!
+    Mixing RTTI and no-RTTI = Undefined Behavior
+
+⚠️  STATIC_CAST SAFETY: Without RTTI, static_cast has NO runtime checks!
+    
+    // WITH RTTI - Safe
+    if (Dog* dog = dynamic_cast<Dog*>(animal))  // Returns nullptr if wrong
+        dog->bark();
+    
+    // WITHOUT RTTI - DANGEROUS
+    Dog* dog = static_cast<Dog*>(animal);  // NO CHECK!
+    dog->bark();  // Undefined behavior if animal is not Dog!
+    
+    // WITHOUT RTTI - Safe Pattern
+    if (animal->get_type() == Animal::Type::DOG) {
+        Dog* dog = static_cast<Dog*>(animal);  // Now safe
+        dog->bark();
+    }
+
+================================================================================
+                              NANOBIND USAGE
+================================================================================
+
+Why nanobind uses -fno-rtti:
+────────────────────────────
+  ✓ Binary size reduction (30-50% smaller)
+  ✓ Python has its own type system
+  ✓ Type conversions are explicit in bindings
+  ✓ Better cache locality (smaller vtables)
+
+CMake Configuration:
+────────────────────
+# Disable RTTI
+target_compile_options(my_ext PRIVATE -fno-rtti)
+
+# Compiler-specific
+target_compile_options(my_ext PRIVATE
+  $<$<CXX_COMPILER_ID:GNU,Clang>:-fno-rtti>
+  $<$<CXX_COMPILER_ID:MSVC>:/GR->
+)
+
+================================================================================
+                          VERIFICATION COMMANDS
+================================================================================
+
+# Check for RTTI symbols
+nm -C binary | grep -i typeinfo
+
+# Compare binary sizes
+size binary-with-rtti binary-no-rtti
+
+# Check typeinfo name strings
+strings binary | grep -E "^[0-9]+(Dog|Cat|Bird)"
+
+# View vtable contents
+objdump -t binary | grep vtable
+
+# Verify RTTI usage in source
+grep -r "dynamic_cast\|typeid" src/
+
+================================================================================
+                            EXAMPLE OUTPUT
+================================================================================
+
+$ ./rtti-example-with-rtti
+Type name: 3Dog
+Hash code: 17076710631882695236
+Successfully cast to Dog!
+Fetching the ball!
+
+$ ./rtti-example-no-rtti
+Type name: Dog
+Type enum: 1
+Manually verified it's a Dog, using static_cast
+Fetching the ball!
+
+================================================================================
