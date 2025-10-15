@@ -12,9 +12,9 @@ This guide explains how LLVM’s lit test runner works, how MLIR’s test suites
   - Provides substitutions like `%PYTHON`, `%mlir_src_root`, `%shlibext`, and ensures tools like `mlir-opt` and `FileCheck` are on `PATH`.
   - Evaluates `REQUIRES:` / `UNSUPPORTED:` feature tags based on configuration.
 
-- Your `llvm-lit` wrapper connects source test roots to the generated site configs in the build tree. See `build/bin/llvm-lit:32`–`build/bin/llvm-lit:39` which map MLIR test suites to their site configs:
-  - `build/bin/llvm-lit:35`
-  - `build/bin/llvm-lit:36`
+- Your `llvm-lit` wrapper connects source test roots to the generated site configs in the build tree. See [`build/bin/llvm-lit:32-39`](build/bin/llvm-lit#L32-L39) which map MLIR test suites to their site configs:
+  - [`build/bin/llvm-lit:35`](build/bin/llvm-lit#L35)
+  - [`build/bin/llvm-lit:36`](build/bin/llvm-lit#L36)
 
 Execution flow (conceptual):
 
@@ -29,43 +29,43 @@ llvm-lit
 ```
 
 References:
-- `build/bin/llvm-lit:35`
-- `build/bin/llvm-lit:36`
+- [`build/bin/llvm-lit:35`](build/bin/llvm-lit#L35)
+- [`build/bin/llvm-lit:36`](build/bin/llvm-lit#L36)
 
 ---
 
 ## Where MLIR lit Config Comes From (Your Build)
 
 - MLIR site config (generated):
-  - `build/tools/mlir/test/lit.site.cfg.py:18` … `build/tools/mlir/test/lit.site.cfg.py:41`
+  - [`build/tools/mlir/test/lit.site.cfg.py:18-41`](build/tools/mlir/test/lit.site.cfg.py#L18-L41)
     - Establishes concrete paths for your build, e.g.:
       - `config.mlir_src_root = "/home/jeromeku/llvm-project/mlir"` (line 37)
       - `config.mlir_obj_root = "/home/jeromeku/llvm-project/build/tools/mlir"` (line 38)
       - `config.mlir_tools_dir = "/home/jeromeku/llvm-project/build/./bin"` (line 39)
       - `config.mlir_lib_dir = "/home/jeromeku/llvm-project/build/./lib"` (line 41)
       - `config.python_executable = "/home/jeromeku/llvm-project/.venv/bin/python"` (line 25)
-    - Also records feature toggles for GPU, Python bindings, etc. (`…:43`–`…:87`).
+    - Also records feature toggles for GPU, Python bindings, etc. ([`build/tools/mlir/test/lit.site.cfg.py:43-87`](build/tools/mlir/test/lit.site.cfg.py#L43-L87)).
   - Loads the project config:
-    - `build/tools/mlir/test/lit.site.cfg.py:93` → `mlir/test/lit.cfg.py`
+    - [`build/tools/mlir/test/lit.site.cfg.py:93`](build/tools/mlir/test/lit.site.cfg.py#L93) → [`mlir/test/lit.cfg.py`](mlir/test/lit.cfg.py)
 
 - MLIR project config (source):
-  - `mlir/test/lit.cfg.py:20` names the suite “MLIR”.
-  - `mlir/test/lit.cfg.py:33` uses `ShTest` format (executes RUN lines).
-  - `mlir/test/lit.cfg.py:35`–`mlir/test/lit.cfg.py:48` define test file suffixes (e.g., `.mlir`, `.py`).
-  - `mlir/test/lit.cfg.py:54` sets `test_exec_root` to `build/tools/mlir/test`.
-  - `mlir/test/lit.cfg.py:56`–`mlir/test/lit.cfg.py:61` add basic substitutions (`%PATH%`, `%mlir_src_root`, etc.).
-  - `mlir/test/lit.cfg.py:185`–`mlir/test/lit.cfg.py:215` defines tools and runtime libs available to tests, e.g., `mlir-opt`, `FileCheck`, `%mlir_runner_utils`.
-  - `mlir/test/lit.cfg.py:323` adds those tools to the environment PATH.
-  - `mlir/test/lit.cfg.py:326`–`mlir/test/lit.cfg.py:329` sets `FILECHECK_OPTS="-enable-var-scope --allow-unused-prefixes=false"`.
-  - `mlir/test/lit.cfg.py:335`–`mlir/test/lit.cfg.py:344` extends `PYTHONPATH` so MLIR Python bindings load from your build directory.
+  - [`mlir/test/lit.cfg.py:20`](mlir/test/lit.cfg.py#L20) names the suite “MLIR”.
+  - [`mlir/test/lit.cfg.py:33`](mlir/test/lit.cfg.py#L33) uses `ShTest` format (executes RUN lines).
+  - [`mlir/test/lit.cfg.py:35-48`](mlir/test/lit.cfg.py#L35-L48) define test file suffixes (e.g., `.mlir`, `.py`).
+  - [`mlir/test/lit.cfg.py:54`](mlir/test/lit.cfg.py#L54) sets `test_exec_root` to `build/tools/mlir/test`.
+  - [`mlir/test/lit.cfg.py:56-61`](mlir/test/lit.cfg.py#L56-L61) add basic substitutions (`%PATH%`, `%mlir_src_root`, etc.).
+  - [`mlir/test/lit.cfg.py:185-215`](mlir/test/lit.cfg.py#L185-L215) defines tools and runtime libs available to tests, e.g., `mlir-opt`, `FileCheck`, `%mlir_runner_utils`.
+  - [`mlir/test/lit.cfg.py:323`](mlir/test/lit.cfg.py#L323) adds those tools to the environment PATH.
+  - [`mlir/test/lit.cfg.py:326-329`](mlir/test/lit.cfg.py#L326-L329) sets `FILECHECK_OPTS="-enable-var-scope --allow-unused-prefixes=false"`.
+  - [`mlir/test/lit.cfg.py:335-344`](mlir/test/lit.cfg.py#L335-L344) extends `PYTHONPATH` so MLIR Python bindings load from your build directory.
 
 - Python test tweaks for this subtree:
-  - `mlir/test/python/lit.local.cfg:1` disables ASAN leak detection (if present) for Python tests.
-  - `mlir/test/python/lit.local.cfg:2`–`mlir/test/python/lit.local.cfg:3` skip Python tests if bindings weren’t built.
+  - [`mlir/test/python/lit.local.cfg:1`](mlir/test/python/lit.local.cfg#L1) disables ASAN leak detection (if present) for Python tests.
+  - [`mlir/test/python/lit.local.cfg:2-3`](mlir/test/python/lit.local.cfg#L2-L3) skip Python tests if bindings weren’t built.
 
 - MLIR unit tests (GoogleTest):
-  - Site config: `build/tools/mlir/test/Unit/lit.site.cfg.py:18`–`build/tools/mlir/test/Unit/lit.site.cfg.py:19` sets exec root to `build/tools/mlir/unittests`.
-  - Project config: `mlir/test/Unit/lit.cfg.py:21` uses the `GoogleTest` format.
+  - Site config: [`build/tools/mlir/test/Unit/lit.site.cfg.py:18-19`](build/tools/mlir/test/Unit/lit.site.cfg.py#L18-L19) sets exec root to `build/tools/mlir/unittests`.
+  - Project config: [`mlir/test/Unit/lit.cfg.py:21`](mlir/test/Unit/lit.cfg.py#L21) uses the `GoogleTest` format.
 
 ---
 
@@ -81,7 +81,7 @@ References:
 - Show failing command lines and output:
   - Add `-s` (show) and `-j1` (easier to read): `build/bin/llvm-lit -svsj1 <path>`
 
-Note: Integration tests are disabled in your current build (`build/tools/mlir/test/lit.site.cfg.py:72` → `config.mlir_include_integration_tests = 0`). lit will mark them UNSUPPORTED unless you rebuild with `-DMLIR_INCLUDE_INTEGRATION_TESTS=ON`. You can still run integration test commands manually (next section).
+Note: Integration tests are disabled in your current build ([`build/tools/mlir/test/lit.site.cfg.py:72`](build/tools/mlir/test/lit.site.cfg.py#L72) → `config.mlir_include_integration_tests = 0`). lit will mark them UNSUPPORTED unless you rebuild with `-DMLIR_INCLUDE_INTEGRATION_TESTS=ON`. You can still run integration test commands manually (next section).
 
 ---
 
@@ -94,7 +94,7 @@ The key is to read the `// RUN:` or `# RUN:` lines and substitute:
 
 ### Core MLIR example (.mlir + FileCheck)
 
-File: `mlir/test/IR/attribute.mlir:1` has:
+File: [`mlir/test/IR/attribute.mlir:1`](mlir/test/IR/attribute.mlir#L1) has:
 - `// RUN: mlir-opt %s -split-input-file -allow-unregistered-dialect -verify-diagnostics | FileCheck %s`
 
 Manual run (no lit):
@@ -113,11 +113,11 @@ export FILECHECK_OPTS="-enable-var-scope --allow-unused-prefixes=false"
 What lit provided that we replicated manually:
 - Tool paths on `PATH` (we used absolute paths instead).
 - `%s` substitution (we used the full source file path).
-- `FILECHECK_OPTS` environment (`mlir/test/lit.cfg.py:326`).
+- `FILECHECK_OPTS` environment ([`mlir/test/lit.cfg.py:326`](mlir/test/lit.cfg.py#L326)).
 
 ### Integration example (mlir-runner + shared libs)
 
-File: `mlir/test/Integration/Dialect/Linalg/CPU/test-elementwise.mlir:1`→`…:10` shows a pipeline ending with `mlir-runner` and `-shared-libs=%mlir_runner_utils`.
+File: [`mlir/test/Integration/Dialect/Linalg/CPU/test-elementwise.mlir:1-10`](mlir/test/Integration/Dialect/Linalg/CPU/test-elementwise.mlir#L1-L10) shows a pipeline ending with `mlir-runner` and `-shared-libs=%mlir_runner_utils`.
 
 On your build, the runtime libs resolve to actual `.so` files in `build/lib` (e.g., `build/lib/libmlir_runner_utils.so`). You can expand `%mlir_runner_utils` to the absolute path and run manually:
 
@@ -142,14 +142,14 @@ RUNNER_LIB="/home/jeromeku/llvm-project/build/lib/libmlir_runner_utils.so"
 ```
 
 Tip: Some integration tests require additional libs, GPUs, emulators, or features. The local config explains AArch64 emulation and substitutions like `%mcr_aarch64_cmd`:
-- `mlir/test/Integration/lit.local.cfg:1` … `mlir/test/Integration/lit.local.cfg:24`
+- [`mlir/test/Integration/lit.local.cfg:1-24`](mlir/test/Integration/lit.local.cfg#L1-L24)
 
 ### Python bindings example (# RUN: %PYTHON %s | FileCheck %s)
 
-Pick `mlir/test/python/ir/attributes.py:1`:
+Pick [`mlir/test/python/ir/attributes.py:1`](mlir/test/python/ir/attributes.py#L1):
 - `# RUN: %PYTHON %s | FileCheck %s`
 
-Manually emulate `%PYTHON` and `PYTHONPATH` from your build’s lit config (`mlir/test/lit.cfg.py:335`–`mlir/test/lit.cfg.py:344`):
+Manually emulate `%PYTHON` and `PYTHONPATH` from your build’s lit config ([`mlir/test/lit.cfg.py:335-344`](mlir/test/lit.cfg.py#L335-L344)):
 
 ```bash
 # Use the venv Python that your site config records
@@ -170,9 +170,9 @@ export FILECHECK_OPTS="-enable-var-scope --allow-unused-prefixes=false"
 Notes:
 - The built wheel-like layout is at `build/tools/mlir/python_packages/mlir_core/mlir` with extension modules in `_mlir_libs`.
 - Your bindings are indeed present (e.g., `_mlir.cpython-312-…so`).
-- Python tests may disable leak detection under ASAN: `mlir/test/python/lit.local.cfg:1`.
+- Python tests may disable leak detection under ASAN: [`mlir/test/python/lit.local.cfg:1`](mlir/test/python/lit.local.cfg#L1).
 
-Alternative (pytest when supported by a test): some tests include a note on running with pytest. Example: `mlir/test/python/multithreaded_tests.py:4`–`mlir/test/python/multithreaded_tests.py:9`. If your interpreter differs, adapt the command:
+Alternative (pytest when supported by a test): some tests include a note on running with pytest. Example: [`mlir/test/python/multithreaded_tests.py:4-9`](mlir/test/python/multithreaded_tests.py#L4-L9). If your interpreter differs, adapt the command:
 
 ```bash
 /home/jeromeku/llvm-project/.venv/bin/python -m pytest -vvv \
@@ -202,29 +202,29 @@ Here’s what the MLIR configs provide to tests, and how to reproduce manually w
 
 - Paths and tools
   - `PATH` augmented with tool dirs so `mlir-opt`, `mlir-translate`, `FileCheck`, `not`, etc. resolve:
-    - See `mlir/test/lit.cfg.py:185`–`mlir/test/lit.cfg.py:215` and `mlir/test/lit.cfg.py:323`.
+    - See [`mlir/test/lit.cfg.py:185-215`](mlir/test/lit.cfg.py#L185-L215) and [`mlir/test/lit.cfg.py:323`](mlir/test/lit.cfg.py#L323).
   - Runtime library substitutions (expand to full .so paths): `%mlir_runner_utils`, `%mlir_c_runner_utils`, `%mlir_async_runtime`, etc.:
-    - See `mlir/test/lit.cfg.py:206`–`mlir/test/lit.cfg.py:214` plus optional GPU/arch-specific ones.
+    - See [`mlir/test/lit.cfg.py:206-214`](mlir/test/lit.cfg.py#L206-L214) plus optional GPU/arch-specific ones.
 
 - Substitutions available in RUN lines
   - Basic: `%PATH%`, `%shlibext`, `%llvm_src_root`, `%mlir_src_root`, `%host_cc`, `%host_cxx`:
-    - `mlir/test/lit.cfg.py:56`–`mlir/test/lit.cfg.py:61`.
+    - [`mlir/test/lit.cfg.py:56-61`](mlir/test/lit.cfg.py#L56-L61).
   - Python: `%PYTHON` resolves to your venv python, possibly wrapped for ASAN:
-    - `mlir/test/lit.cfg.py:266`–`mlir/test/lit.cfg.py:301`.
+    - [`mlir/test/lit.cfg.py:266-301`](mlir/test/lit.cfg.py#L266-L301).
 
 - Environment
   - `FILECHECK_OPTS="-enable-var-scope --allow-unused-prefixes=false"`:
-    - `mlir/test/lit.cfg.py:326`–`mlir/test/lit.cfg.py:329`.
+    - [`mlir/test/lit.cfg.py:326-329`](mlir/test/lit.cfg.py#L326-L329).
   - `PYTHONPATH` includes your built MLIR python packages:
-    - `mlir/test/lit.cfg.py:335`–`mlir/test/lit.cfg.py:344`.
+    - [`mlir/test/lit.cfg.py:335-344`](mlir/test/lit.cfg.py#L335-L344).
   - Python/ASAN tweaks for subtrees:
-    - `mlir/test/python/lit.local.cfg:1`.
+    - [`mlir/test/python/lit.local.cfg:1`](mlir/test/python/lit.local.cfg#L1).
 
 - Features (REQUIRES/UNSUPPORTED)
   - Examples added by your site/project configs: `asserts`, `python-ge-311`, and GPU-related features (NVPTX, etc.).
-    - See `mlir/test/lit.cfg.py:346`–`mlir/test/lit.cfg.py:385` and the toggles in `build/tools/mlir/test/lit.site.cfg.py:43`–`build/tools/mlir/test/lit.site.cfg.py:87`.
+    - See [`mlir/test/lit.cfg.py:346-385`](mlir/test/lit.cfg.py#L346-L385) and the toggles in [`build/tools/mlir/test/lit.site.cfg.py:43-87`](build/tools/mlir/test/lit.site.cfg.py#L43-L87).
   - Integration tests are gated by `config.mlir_include_integration_tests`:
-    - `build/tools/mlir/test/lit.site.cfg.py:72` and `mlir/test/Integration/lit.local.cfg:1`–`mlir/test/Integration/lit.local.cfg:5`.
+    - [`build/tools/mlir/test/lit.site.cfg.py:72`](build/tools/mlir/test/lit.site.cfg.py#L72) and [`mlir/test/Integration/lit.local.cfg:1-5`](mlir/test/Integration/lit.local.cfg#L1-L5).
 
 When running manually, expand substitutions yourself and export the relevant env vars as shown in the examples above.
 
@@ -274,35 +274,34 @@ GoogleTest executables under build/tools/mlir/unittests
 
 ## Useful File Pointers (Clickable)
 
-- `build/bin/llvm-lit:35`
-- `build/bin/llvm-lit:36`
-- `build/tools/mlir/test/lit.site.cfg.py:18`
-- `build/tools/mlir/test/lit.site.cfg.py:37`
-- `build/tools/mlir/test/lit.site.cfg.py:38`
-- `build/tools/mlir/test/lit.site.cfg.py:39`
-- `build/tools/mlir/test/lit.site.cfg.py:41`
-- `build/tools/mlir/test/lit.site.cfg.py:72`
-- `mlir/test/lit.cfg.py:20`
-- `mlir/test/lit.cfg.py:33`
-- `mlir/test/lit.cfg.py:35`
-- `mlir/test/lit.cfg.py:54`
-- `mlir/test/lit.cfg.py:56`
-- `mlir/test/lit.cfg.py:185`
-- `mlir/test/lit.cfg.py:206`
-- `mlir/test/lit.cfg.py:323`
-- `mlir/test/lit.cfg.py:326`
-- `mlir/test/lit.cfg.py:335`
-- `mlir/test/lit.cfg.py:346`
-- `mlir/test/lit.cfg.py:375`
-- `mlir/test/lit.cfg.py:384`
-- `mlir/test/python/lit.local.cfg:1`
-- `mlir/test/Integration/lit.local.cfg:1`
-- `mlir/test/IR/attribute.mlir:1`
-- `mlir/test/Integration/Dialect/Linalg/CPU/test-elementwise.mlir:1`
-- `mlir/test/python/ir/attributes.py:1`
-- `mlir/test/python/multithreaded_tests.py:4`
+- [`build/bin/llvm-lit:35`](build/bin/llvm-lit#L35)
+- [`build/bin/llvm-lit:36`](build/bin/llvm-lit#L36)
+- [`build/tools/mlir/test/lit.site.cfg.py:18`](build/tools/mlir/test/lit.site.cfg.py#L18)
+- [`build/tools/mlir/test/lit.site.cfg.py:37`](build/tools/mlir/test/lit.site.cfg.py#L37)
+- [`build/tools/mlir/test/lit.site.cfg.py:38`](build/tools/mlir/test/lit.site.cfg.py#L38)
+- [`build/tools/mlir/test/lit.site.cfg.py:39`](build/tools/mlir/test/lit.site.cfg.py#L39)
+- [`build/tools/mlir/test/lit.site.cfg.py:41`](build/tools/mlir/test/lit.site.cfg.py#L41)
+- [`build/tools/mlir/test/lit.site.cfg.py:72`](build/tools/mlir/test/lit.site.cfg.py#L72)
+- [`mlir/test/lit.cfg.py:20`](mlir/test/lit.cfg.py#L20)
+- [`mlir/test/lit.cfg.py:33`](mlir/test/lit.cfg.py#L33)
+- [`mlir/test/lit.cfg.py:35`](mlir/test/lit.cfg.py#L35)
+- [`mlir/test/lit.cfg.py:54`](mlir/test/lit.cfg.py#L54)
+- [`mlir/test/lit.cfg.py:56`](mlir/test/lit.cfg.py#L56)
+- [`mlir/test/lit.cfg.py:185`](mlir/test/lit.cfg.py#L185)
+- [`mlir/test/lit.cfg.py:206`](mlir/test/lit.cfg.py#L206)
+- [`mlir/test/lit.cfg.py:323`](mlir/test/lit.cfg.py#L323)
+- [`mlir/test/lit.cfg.py:326`](mlir/test/lit.cfg.py#L326)
+- [`mlir/test/lit.cfg.py:335`](mlir/test/lit.cfg.py#L335)
+- [`mlir/test/lit.cfg.py:346`](mlir/test/lit.cfg.py#L346)
+- [`mlir/test/lit.cfg.py:375`](mlir/test/lit.cfg.py#L375)
+- [`mlir/test/lit.cfg.py:384`](mlir/test/lit.cfg.py#L384)
+- [`mlir/test/python/lit.local.cfg:1`](mlir/test/python/lit.local.cfg#L1)
+- [`mlir/test/Integration/lit.local.cfg:1`](mlir/test/Integration/lit.local.cfg#L1)
+- [`mlir/test/IR/attribute.mlir:1`](mlir/test/IR/attribute.mlir#L1)
+- [`mlir/test/Integration/Dialect/Linalg/CPU/test-elementwise.mlir:1`](mlir/test/Integration/Dialect/Linalg/CPU/test-elementwise.mlir#L1)
+- [`mlir/test/python/ir/attributes.py:1`](mlir/test/python/ir/attributes.py#L1)
+- [`mlir/test/python/multithreaded_tests.py:4`](mlir/test/python/multithreaded_tests.py#L4)
 
 ---
 
 If you want, I can add small helper scripts under `codex/` (e.g., `run-mlir-test.sh`, `run-python-test.sh`) that parse a given test’s RUN line and execute it with your build’s absolute paths. Let me know.
-
