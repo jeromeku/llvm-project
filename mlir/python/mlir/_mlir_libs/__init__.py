@@ -8,7 +8,6 @@ import os
 
 _this_dir = os.path.dirname(__file__)
 
-
 def get_lib_dirs() -> Sequence[str]:
     """Gets the lib directory for linking to shared libraries.
 
