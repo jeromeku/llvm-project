@@ -17,7 +17,7 @@ message(STATUS "Python INCLUDE ${Python_INCLUDE_DIRS}")
 cmake_path(GET CMAKE_SOURCE_DIR PARENT_PATH PARENT_DIR)
 message(STATUS "Parent directory: ${PARENT_DIR}")
 
-add_subdirectory(ext/nanobind)
+add_subdirectory(/home/jeromeku/llvm-project/nanobind-example/ext/nanobind)
 
 nanobind_add_module(my_ext NOMINSIZE my_ext.cpp)
 target_compile_options(my_ext PRIVATE
