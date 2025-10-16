@@ -47,9 +47,13 @@ LOG_FORMAT = "%(levelname)s::%(name)s [%(pathname)s:%(lineno)d] - %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
 from mlir.ir import Diagnostic, Context, DiagnosticHandler, Operation, Location
+from mlir._mlir_libs import get_dialect_registry
 from mlir._mlir_libs._mlir.ir import MLIRError, _GlobalDebug
 #print(help(_GlobalDebug.set_types))
 _GlobalDebug.flag = True
+
+print(f"DIALECT_REGISTRY: {get_dialect_registry()}")
+registry = get_dialect_registry()
 
 def get_diagnostic_handler(ctx: Context) -> DiagnosticHandler:
     ctx.emit_error_diagnostics = True
