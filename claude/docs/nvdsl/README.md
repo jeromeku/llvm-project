@@ -22,6 +22,7 @@ This directory contains comprehensive documentation of the NVDSL (NVIDIA DSL) sy
 | **[02_nvdsl_layer.md](02_nvdsl_layer.md)** | NVDSL DSL implementation | Classes (TMA, Mbarriers, WGMMAMatrix), decorators, utilities |
 | **[06_compilation_pipeline.md](06_compilation_pipeline.md)** | IR → executable compilation | Pass pipeline, PTX generation, GPU runtime, optimization |
 | **[07_ch5_complete_trace.md](07_ch5_complete_trace.md)** | Complete Python→C++ dispatch trace | Frame-by-frame execution, state changes, memory layout, full call stacks |
+| **[08_mlir_uniquers.md](08_mlir_uniquers.md)** | MLIR uniquing system internals | TypeUniquer, AttributeUniquer, AffineUniquer, hash-consing, storage classes |
 
 ---
 
