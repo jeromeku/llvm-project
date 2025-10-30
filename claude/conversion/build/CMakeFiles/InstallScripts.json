@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/jeromeku/llvm-project/claude/conversion/build/cmake_install.cmake",
+		"/home/jeromeku/llvm-project/claude/conversion/build/include/cmake_install.cmake",
+		"/home/jeromeku/llvm-project/claude/conversion/build/lib/cmake_install.cmake",
+		"/home/jeromeku/llvm-project/claude/conversion/build/tools/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

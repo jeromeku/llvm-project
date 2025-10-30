@@ -1,0 +1,84 @@
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/SimpleArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/TypedArith.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
+--- !FileInfo:
+  filepath: "/home/jeromeku/llvm-project/claude/conversion/include/MixedDialects.td"
+  includes: "/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/llvm/include;/home/jeromeku/llvm-project/build/include;/home/jeromeku/llvm-project/mlir/include;/home/jeromeku/llvm-project/build/tools/mlir/include;/home/jeromeku/llvm-project/claude/conversion/include;/home/jeromeku/llvm-project/claude/conversion/build/include"
