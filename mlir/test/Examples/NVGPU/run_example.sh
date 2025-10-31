@@ -5,7 +5,7 @@ set -euo pipefail
 EXAMPLE=${1:-Ch1.py}
 BASE_NAME=$(basename "$EXAMPLE")
 
-LLVM_HOME="/home/jeromeku/mlir/llvm-project"
+LLVM_HOME="/home/jeromeku/llvm-project"
 export SUPPORT_LIB="${LLVM_HOME}/build/lib/libmlir_cuda_runtime.so"
 export PYTHONPATH="${LLVM_HOME}/build/tools/mlir/python_packages/mlir_core"
 export CUDA_ROOT="/home/jeromeku/cuda-toolkit"

@@ -19,9 +19,11 @@ sys.path.append(_SCRIPT_PATH)
 class NvgpuCompiler:
     """Nvgpu class for compiling and building MLIR modules."""
 
-    def __init__(self, options: str, opt_level: int, shared_libs: Sequence[str]):
-        pipeline = f"builtin.module(gpu-lower-to-nvvm-pipeline{{{options}}})"
-        self.pipeline = pipeline
+    def __init__(self, options: str, opt_level: int, shared_libs: Sequence[str], **pipeline_print_kwargs):
+        self.pipeline = f"builtin.module(gpu-lower-to-nvvm-pipeline{{{options}}})"
+        self.passmanager = passmanager.PassManager()
+        self.passmanager.enable_ir_printing(**pipeline_print_kwargs)
+
         self.shared_libs = shared_libs
         self.opt_level = opt_level
 

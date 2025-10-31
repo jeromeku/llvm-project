@@ -6,7 +6,16 @@ from mlir import ir
 from mlir.dialects import arith, func, gpu, memref, nvgpu, scf, nvvm
 from mlir.extras import types as T
 from mlir import runtime as rt
-from tools import nvgpucompiler
+from mlir import passmanager
+from dataclasses import dataclass
+from mlir import execution_engine
+
+@dataclass
+class MLIRFunc:
+    module: ir.Module
+    func_name: str
+    args: list[ir.Type]
+    result: any = None
 
 MLIR_DYNAMIC = -9223372036854775808
 
@@ -46,9 +55,7 @@ def get_mlir_func_obj_ty(inputArgs):
         elif isinstance(arg, float):
             args.append(c_float_p(arg))
         elif isinstance(arg, np.ndarray):
-            args.append(
-                ctypes.pointer(ctypes.pointer(rt.get_ranked_memref_descriptor(arg)))
-            )
+            args.append(ctypes.pointer(ctypes.pointer(rt.get_ranked_memref_descriptor(arg))))
         else:
             raise NotImplementedError(arg)
     return args
@@ -73,9 +80,7 @@ class Mbarriers:
         if predicate is None:
             nvgpu.mbarrier_init(self.mbar_group_op, count_op, self.id_op)
         else:
-            nvgpu.mbarrier_init(
-                self.mbar_group_op, count_op, self.id_op, predicate=predicate
-            )
+            nvgpu.mbarrier_init(self.mbar_group_op, count_op, self.id_op, predicate=predicate)
 
     def arrive(self, txcount: int = 0, predicate=None):
         if txcount != 0:
@@ -138,9 +143,7 @@ class TMA:
     def create_descriptor(self, device_ptr):
         tma_descriptor_ty = self.tensormap_descriptor_ty
         device_unranked_memref = memref.CastOp(
-            ir.UnrankedMemRefType.get(
-                self.memref_ty.element_type, self.memref_ty.memory_space
-            ),
+            ir.UnrankedMemRefType.get(self.memref_ty.element_type, self.memref_ty.memory_space),
             device_ptr,
         )
         self.tma_descriptor = nvgpu.TmaCreateDescriptorOp(
@@ -156,7 +159,7 @@ class TMA:
             dest,
             mbarrier.mbar_group_op,
             self.tma_descriptor,
-            coordinates=map(const, coords),
+            coordinates=list(map(const, coords)),
             mbarId=mbarrier.id_op,
             predicate=predicate,
         )
@@ -242,17 +245,13 @@ class WGMMAMatrix:
         lhs = nvgpu.warpgroup_generate_descriptor(
             self.wgmma_ty, self.smem, self.desc.tma_descriptor
         )
-        rhs = nvgpu.warpgroup_generate_descriptor(
-            rhs.wgmma_ty, rhs.smem, rhs.desc.tma_descriptor
-        )
+        rhs = nvgpu.warpgroup_generate_descriptor(rhs.wgmma_ty, rhs.smem, rhs.desc.tma_descriptor)
         return [lhs, rhs]
 
     def __iadd__(self, matmulResult):
         lhs = matmulResult[0]
         rhs = matmulResult[1]
-        acc_op = nvgpu.WarpgroupMmaOp(
-            self.acc_op.type, lhs, rhs, self.acc_op, transposeB=True
-        )
+        acc_op = nvgpu.WarpgroupMmaOp(self.acc_op.type, lhs, rhs, self.acc_op, transposeB=True)
         return WGMMAMatrix(WGMMAType.Accumulator, acc_op=acc_op)
 
 
@@ -266,9 +265,7 @@ def get_dynamic_shared_memory(shape=None, ty=None, offset: int = 0):
         return dynamic_smem
     memref_ty = ir.MemRefType.get(shape, ty, memory_space=smem_space)
     return memref.view(
-        ir.MemRefType.get(
-            memref_ty.shape, memref_ty.element_type, memory_space=smem_space
-        ),
+        ir.MemRefType.get(memref_ty.shape, memref_ty.element_type, memory_space=smem_space),
         dynamic_smem,
         const(offset),
         [],
@@ -304,157 +301,199 @@ def get_mlir_ty(arg):
 
 
 class NVDSL:
-    @staticmethod
-    def mlir_gpu_launch(grid=(1, 1, 1), block=(1, 1, 1), smem=0):
-        def decorator(func):
-            @functools.wraps(func)
-            def wrapper(*args, **kwargs):
-                launch_op = gpu.LaunchOp(
-                    None,
-                    [],
-                    *map(const, grid),
-                    *map(const, block),
-                    dynamicSharedMemorySize=arith.constant(T.i32(), smem),
-                )
-                launch_op.body.blocks.append(*([T.index()] * 12))
-                with ir.InsertionPoint(launch_op.body.blocks[0]):
-                    result = func(*args, **kwargs)
-                    gpu.terminator()
-                    return result
+    PIPELINE_OPTIONS = f"cubin-chip=sm_90a cubin-features=+ptx80 opt-level=3"
 
-            return wrapper
+    def __init__(
+        self,
+        shared_libs: list[str] = None,
+        nvgpu_to_nvvm_opts: str = PIPELINE_OPTIONS,
+        opt_level: int = 3,
+        enable_debug_info: bool = True,
+        print_before_all: bool = False,
+        print_after_all: bool = True,
+        tree_printing_path: str = None,
+        print_module_scope: bool = False,
+        **pipeline_print_kwargs,
+    ):
+        if shared_libs is None:
+            support_lib = os.getenv("SUPPORT_LIB")
+            if not os.path.exists(support_lib):
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), support_lib)
+            assert support_lib in shared_libs
 
-        return decorator
+        assert not (print_after_all and print_before_all)
 
-    @staticmethod
-    def mlir_func(funcBody):
-        @functools.wraps(funcBody)
+        self.pipeline = f"builtin.module(gpu-lower-to-nvvm-pipeline{{{nvgpu_to_nvvm_opts}}})"
+        self.passmanager = passmanager.PassManager()
+
+        self.passmanager.enable_ir_printing(
+            enable_debug_info=enable_debug_info,
+            print_after_all=print_after_all,
+            print_before_all=print_before_all,
+            tree_printing_dir_path=tree_printing_path,
+            print_module_scope=print_module_scope,
+            **pipeline_print_kwargs
+        )
+
+        self.opt_level = opt_level
+
+    def compile_module(self, module: ir.Module):
+
+        try:
+            pm = self.passmanager.parse(self.pipeline)
+        except ir.MLIRError as mlir_error:
+            print("MLIR parsing error...")
+            raise mlir_error
+        except Exception as e:
+            raise e
+
+        breakpoint()
+        
+        try:
+            pm.run(module.operation)
+        except ir.MLIRError as mlir_error:
+            print("Passmanager compilation error")
+            raise mlir_error
+        except Exception as e:
+            raise e
+
+    def jit(self, module: ir.Module) -> execution_engine.ExecutionEngine:
+        """Wraps the module in a JIT execution engine."""
+        return execution_engine.ExecutionEngine(
+            module, opt_level=self.opt_level, shared_libs=self.shared_libs
+        )
+
+    def launch(self, function_name, args, result):
+        # Ensure static constructors (e.g., GPU binary loaders) run
+        # so CUDA is initialized before invoking kernels.
+        self.engine.initialize()
+
+        # Convert input arguments to MLIR arguments
+        newArgs = get_mlir_func_obj_ty(args)
+
+        # Run the compiled program
+        self.engine.invoke(function_name, *newArgs)
+
+        return result
+
+
+def mlir_gpu_launch(grid=(1, 1, 1), block=(1, 1, 1), smem=0):
+    def decorator(func):
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            function_name = funcBody.__name__
-
-            def saveIR(module):
-                """Save generated IR"""
-                if True:  # self.saveIR:
-                    # print(mlir_nvgpu_module)
-                    original_stdout = sys.stdout
-                    with open("nvdsl.mlir", "w") as f:
-                        sys.stdout = f
-                        print(module)
-                        sys.stdout = original_stdout
-
-            def _binary_op(lhs, rhs, op: str, predAtt="") -> "ArithValue":
-                """Generate MLIR's Arith dialects binary operations."""
-                rhs = const(rhs)
-                if arith._is_float_type(lhs.type) and arith._is_float_type(rhs.type):
-                    op += "F"
-                    if op.startswith("Cmp"):
-                        predicateAttr = getattr(arith, f"CmpFPredicate").__dict__[
-                            predAtt
-                        ]
-                elif arith._is_integer_like_type(
-                    lhs.type
-                ) and arith._is_integer_like_type(lhs.type):
-                    if op == "Div" or op == "Rem":
-                        op += "U"
-                    op += "I"
-                    if op.startswith("Cmp"):
-                        predicateAttr = getattr(arith, f"CmpIPredicate").__dict__[
-                            predAtt
-                        ]
-                else:
-                    raise NotImplementedError(
-                        f"Unsupported '{op}' operands: {lhs}, {rhs}"
-                    )
-
-                if op.startswith("Cmp"):
-                    op = getattr(arith, f"{op}Op")
-
-                    return op(predicateAttr, lhs, rhs).result
-                else:
-                    op = getattr(arith, f"{op}Op")
-                    return op(lhs, rhs).result
-
-            @ir.register_value_caster(ir.IndexType.static_typeid)
-            @ir.register_value_caster(ir.F32Type.static_typeid)
-            @ir.register_value_caster(ir.F16Type.static_typeid)
-            @ir.register_value_caster(ir.F64Type.static_typeid)
-            @ir.register_value_caster(ir.IntegerType.static_typeid)
-            class ArithValue(ir.Value):
-                """Overloads operators for MLIR's Arith dialects binary operations."""
-
-                def __init__(self, v):
-                    super().__init__(v)
-
-                __add__ = partialmethod(_binary_op, op="Add")
-                __sub__ = partialmethod(_binary_op, op="Sub")
-                __mul__ = partialmethod(_binary_op, op="Mul")
-                __truediv__ = partialmethod(_binary_op, op="Div")
-                __mod__ = partialmethod(_binary_op, op="Rem")
-                __xor__ = partialmethod(_binary_op, op="XOr")
-                __lt__ = partialmethod(_binary_op, op="Cmp", predAtt="ult")
-                __le__ = partialmethod(_binary_op, op="Cmp", predAtt="ule")
-                __eq__ = partialmethod(_binary_op, op="Cmp", predAtt="eq")
-                __ne__ = partialmethod(_binary_op, op="Cmp", predAtt="ne")
-                __gt__ = partialmethod(_binary_op, op="Cmp", predAtt="ugt")
-                __ge__ = partialmethod(_binary_op, op="Cmp", predAtt="uge")
-                __and__ = partialmethod(_binary_op, op="And")
-                __or__ = partialmethod(_binary_op, op="Or")
-
-                def __str__(self):
-                    return (
-                        super()
-                        .__str__()
-                        .replace(ir.Value.__name__, ArithValue.__name__)
-                    )
-
-            # Generate MLIR Context and start generating IR
-            with ir.Context(), ir.Location.unknown():
-                types = []
-                for arg in args:
-                    types.append(get_mlir_ty(arg))
-
-                # Build IR
-                module = ir.Module.create()
-                with ir.InsertionPoint(module.body):
-                    fop = func.FuncOp(function_name, (types, []))
-                    fop.attributes["llvm.emit_c_interface"] = ir.UnitAttr.get()
-                    with ir.InsertionPoint(fop.add_entry_block()):
-                        fargs = []
-                        for i, a in enumerate(types):
-                            fargs.append(fop.arguments[i])
-
-                        # Call user function body
-                        result = funcBody(*fargs, **kwargs)
-                        func.ReturnOp([])
-
-                # Save IR in a file
-                # saveIR(module)
-
-                # Verify the module
-                module.operation.verify()
-
-                # Compile and JIT MLIR module
-                options = f"cubin-chip=sm_90a cubin-features=+ptx80 opt-level=3"
-                support_lib = os.getenv("SUPPORT_LIB")
-                if not os.path.exists(support_lib):
-                    raise FileNotFoundError(
-                        errno.ENOENT, os.strerror(errno.ENOENT), support_lib
-                    )
-                compiler = nvgpucompiler.NvgpuCompiler(
-                    options, opt_level=3, shared_libs=[support_lib]
-                )
-                engine = compiler.compile_and_jit(module)
-                
-                # Ensure static constructors (e.g., GPU binary loaders) run
-                # so CUDA is initialized before invoking kernels.
-                engine.initialize()
-
-            # Convert input arguments to MLIR arguments
-            newArgs = get_mlir_func_obj_ty(args)
-
-            # Run the compiled program
-            engine.invoke(function_name, *newArgs)
-
-            return result
+            launch_op = gpu.LaunchOp(
+                None,
+                [],
+                *map(const, grid),
+                *map(const, block),
+                dynamicSharedMemorySize=arith.constant(T.i32(), smem),
+            )
+            launch_op.body.blocks.append(*([T.index()] * 12))
+            with ir.InsertionPoint(launch_op.body.blocks[0]):
+                result = func(*args, **kwargs)
+                gpu.terminator()
+                return result
 
         return wrapper
+
+    return decorator
+
+
+def mlir_func(funcBody):
+    @functools.wraps(funcBody)
+    def wrapper(*args, **kwargs):
+        function_name = funcBody.__name__
+
+        def saveIR(module):
+            """Save generated IR"""
+            if True:  # self.saveIR:
+                # print(mlir_nvgpu_module)
+                original_stdout = sys.stdout
+                with open("nvdsl.mlir", "w") as f:
+                    sys.stdout = f
+                    print(module)
+                    sys.stdout = original_stdout
+
+        def _binary_op(lhs, rhs, op: str, predAtt="") -> "ArithValue":
+            """Generate MLIR's Arith dialects binary operations."""
+            rhs = const(rhs)
+            if arith._is_float_type(lhs.type) and arith._is_float_type(rhs.type):
+                op += "F"
+                if op.startswith("Cmp"):
+                    predicateAttr = getattr(arith, f"CmpFPredicate").__dict__[predAtt]
+            elif arith._is_integer_like_type(lhs.type) and arith._is_integer_like_type(lhs.type):
+                if op == "Div" or op == "Rem":
+                    op += "U"
+                op += "I"
+                if op.startswith("Cmp"):
+                    predicateAttr = getattr(arith, f"CmpIPredicate").__dict__[predAtt]
+            else:
+                raise NotImplementedError(f"Unsupported '{op}' operands: {lhs}, {rhs}")
+
+            if op.startswith("Cmp"):
+                op = getattr(arith, f"{op}Op")
+
+                return op(predicateAttr, lhs, rhs).result
+            else:
+                op = getattr(arith, f"{op}Op")
+                return op(lhs, rhs).result
+
+        @ir.register_value_caster(ir.IndexType.static_typeid)
+        @ir.register_value_caster(ir.F32Type.static_typeid)
+        @ir.register_value_caster(ir.F16Type.static_typeid)
+        @ir.register_value_caster(ir.F64Type.static_typeid)
+        @ir.register_value_caster(ir.IntegerType.static_typeid)
+        class ArithValue(ir.Value):
+            """Overloads operators for MLIR's Arith dialects binary operations."""
+
+            def __init__(self, v):
+                super().__init__(v)
+
+            __add__ = partialmethod(_binary_op, op="Add")
+            __sub__ = partialmethod(_binary_op, op="Sub")
+            __mul__ = partialmethod(_binary_op, op="Mul")
+            __truediv__ = partialmethod(_binary_op, op="Div")
+            __mod__ = partialmethod(_binary_op, op="Rem")
+            __xor__ = partialmethod(_binary_op, op="XOr")
+            __lt__ = partialmethod(_binary_op, op="Cmp", predAtt="ult")
+            __le__ = partialmethod(_binary_op, op="Cmp", predAtt="ule")
+            __eq__ = partialmethod(_binary_op, op="Cmp", predAtt="eq")
+            __ne__ = partialmethod(_binary_op, op="Cmp", predAtt="ne")
+            __gt__ = partialmethod(_binary_op, op="Cmp", predAtt="ugt")
+            __ge__ = partialmethod(_binary_op, op="Cmp", predAtt="uge")
+            __and__ = partialmethod(_binary_op, op="And")
+            __or__ = partialmethod(_binary_op, op="Or")
+
+            def __str__(self):
+                return super().__str__().replace(ir.Value.__name__, ArithValue.__name__)
+
+        # Generate MLIR Context and start generating IR
+        with ir.Context(), ir.Location.unknown():
+            types = []
+            for arg in args:
+                types.append(get_mlir_ty(arg))
+
+            # Build IR
+            module = ir.Module.create()
+            with ir.InsertionPoint(module.body):
+                fop = func.FuncOp(function_name, (types, []))
+                fop.attributes["llvm.emit_c_interface"] = ir.UnitAttr.get()
+                with ir.InsertionPoint(fop.add_entry_block()):
+                    fargs = []
+                    for i, a in enumerate(types):
+                        fargs.append(fop.arguments[i])
+
+                    # Call user function body
+                    result = funcBody(*fargs, **kwargs)
+                    func.ReturnOp([])
+
+            # Save IR in a file
+            # saveIR(module)
+
+            # Verify the module
+            module.operation.verify()
+
+            # Compile and JIT MLIR module
+        return MLIRFunc(module, function_name, args, result)
+
+    return wrapper
