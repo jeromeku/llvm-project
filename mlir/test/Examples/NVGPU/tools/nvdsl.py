@@ -298,22 +298,25 @@ def get_mlir_ty(arg):
         shape = descriptor.shape
         return memref.MemRefType.get(shape, dtype)
     raise NotImplementedError(arg)
-
-
+@dataclass
+class PassManagerOpts:
+    enable_debug_info: bool = True
+    print_after_all: bool = True
+    print_before_all: bool = False
+    tree_printing_dir_path: str = None
+    print_module_scope: bool = False
+    
+    def to_dict(self):
+        from dataclasses import asdict
+        return asdict(self)
 class NVDSL:
-    PIPELINE_OPTIONS = f"cubin-chip=sm_90a cubin-features=+ptx80 opt-level=3"
+    PIPELINE_OPTIONS = "cubin-chip=sm_90a cubin-features=+ptx80" # opt-level=3"
 
     def __init__(
         self,
         shared_libs: list[str] = None,
         nvgpu_to_nvvm_opts: str = PIPELINE_OPTIONS,
         opt_level: int = 3,
-        enable_debug_info: bool = True,
-        print_before_all: bool = False,
-        print_after_all: bool = True,
-        tree_printing_path: str = None,
-        print_module_scope: bool = False,
-        **pipeline_print_kwargs,
     ):
         if shared_libs is None:
             support_lib = os.getenv("SUPPORT_LIB")
@@ -321,41 +324,34 @@ class NVDSL:
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), support_lib)
             assert support_lib in shared_libs
 
-        assert not (print_after_all and print_before_all)
-
         self.pipeline = f"builtin.module(gpu-lower-to-nvvm-pipeline{{{nvgpu_to_nvvm_opts}}})"
-        self.passmanager = passmanager.PassManager()
 
-        self.passmanager.enable_ir_printing(
-            enable_debug_info=enable_debug_info,
-            print_after_all=print_after_all,
-            print_before_all=print_before_all,
-            tree_printing_dir_path=tree_printing_path,
-            print_module_scope=print_module_scope,
-            **pipeline_print_kwargs
-        )
 
         self.opt_level = opt_level
 
-    def compile_module(self, module: ir.Module):
+    def compile_module(self, module: ir.Module, **pipeline_print_kwargs):
+        with module.context, ir.Location.unknown():
+            try:
+                pm = passmanager.PassManager.parse(self.pipeline)
+            except ir.MLIRError as mlir_error:
+                print("MLIR parsing error...")
+                raise mlir_error
+            except Exception as e:
+                raise e
 
-        try:
-            pm = self.passmanager.parse(self.pipeline)
-        except ir.MLIRError as mlir_error:
-            print("MLIR parsing error...")
-            raise mlir_error
-        except Exception as e:
-            raise e
+            pm.enable_ir_printing(
+                **pipeline_print_kwargs
+            )
 
-        breakpoint()
-        
-        try:
-            pm.run(module.operation)
-        except ir.MLIRError as mlir_error:
-            print("Passmanager compilation error")
-            raise mlir_error
-        except Exception as e:
-            raise e
+            breakpoint()
+
+            try:
+                pm.run(module.operation)
+            except ir.MLIRError as mlir_error:
+                print("Passmanager compilation error")
+                raise mlir_error
+            except Exception as e:
+                raise e
 
     def jit(self, module: ir.Module) -> execution_engine.ExecutionEngine:
         """Wraps the module in a JIT execution engine."""
