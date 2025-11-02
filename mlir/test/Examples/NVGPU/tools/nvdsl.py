@@ -311,7 +311,7 @@ class PassManagerOpts:
         from dataclasses import asdict
         return asdict(self)
 class NVDSL:
-    PIPELINE_OPTIONS = "cubin-chip=sm_90a cubin-features=+ptx80" # opt-level=3"
+    PIPELINE_OPTIONS = "cubin-chip=sm_90a cubin-format=isa cubin-features=+ptx80" # opt-level=3"
 
     def __init__(
         self,
@@ -330,7 +330,7 @@ class NVDSL:
 
         self.opt_level = opt_level
 
-    def compile_module(self, module: ir.Module, **pipeline_print_kwargs):
+    def compile_module(self, module: ir.Module, print_pipeline: bool = True, **pipeline_print_kwargs):
         with module.context, ir.Location.unknown():
             try:
                 pm = passmanager.PassManager.parse(self.pipeline)
@@ -339,7 +339,10 @@ class NVDSL:
                 raise mlir_error
             except Exception as e:
                 raise e
-
+            else:
+                if print_pipeline:
+                    print(str(pm))
+                    
             pm.enable_ir_printing(
                 **pipeline_print_kwargs
             )
