@@ -305,6 +305,7 @@ class PassManagerOpts:
     print_before_all: bool = False
     tree_printing_dir_path: str = None
     print_module_scope: bool = False
+    print_generic_op_form: bool = False
     
     def to_dict(self):
         from dataclasses import asdict

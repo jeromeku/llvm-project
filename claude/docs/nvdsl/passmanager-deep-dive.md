@@ -95,7 +95,7 @@ pm.run(module)
 
 #### 3. `add(run: Callable, ...)`
 
-**Line**: [Pass.cpp:170-207](../../mlir/lib/Bindings/Python/Pass.cpp#L170-L207)
+**Line**: [Pass.cpp:170-207](../../../mlir/lib/Bindings/Python/Pass.cpp#L170-L207)
 
 ```python
 def add(
