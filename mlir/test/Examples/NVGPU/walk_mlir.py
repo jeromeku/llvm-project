@@ -1,5 +1,7 @@
 from mlir import ir
 from mlir.dialects import gpu
+import sys
+
 PADDING = " " 
 IDENT1 = PADDING * 2
 IDENT2 = IDENT1 * 2
@@ -28,8 +30,10 @@ def bytes_to_str(b: bytes):
     return s.replace('\r\n', '\n')
 
 if __name__ == "__main__":
+    mlir_src = sys.argv[1]
+    print(f"Parsing {mlir_src}")
     with ir.Context():
-        mod = ir.Module.parseFile('module_after.mlir')
+        mod = ir.Module.parseFile(mlir_src)
         main_op = mod.operation
         main_block = main_op.regions[0].blocks[0]
         for i, region in enumerate(main_op.regions):
