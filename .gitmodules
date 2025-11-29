@@ -1,3 +1,6 @@
 [submodule "ext/nanobind"]
 	path = ext/nanobind
 	url = https://github.com/wjakob/nanobind
+[submodule "cutlass"]
+	path = cutlass
+	url = https://github.com/jeromeku/cutlass
