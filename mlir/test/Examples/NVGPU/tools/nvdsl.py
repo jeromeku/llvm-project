@@ -304,6 +304,10 @@ def get_mlir_ty(arg):
 
 
 class NVDSL:
+    compile_only: bool = False
+    shared_libs: list[str] = None
+    pipeline_options: str = "cubin-chip=sm_90a cubin-features=+ptx80 opt-level=3"
+
     @staticmethod
     def mlir_gpu_launch(grid=(1, 1, 1), block=(1, 1, 1), smem=0):
         def decorator(func):
@@ -428,29 +432,30 @@ class NVDSL:
                         func.ReturnOp([])
 
                 # Save IR in a file
-                # saveIR(module)
+                saveIR(module)
 
                 # Verify the module
                 module.operation.verify()
 
                 # Compile and JIT MLIR module
-                options = f"cubin-chip=sm_90a cubin-features=+ptx80 opt-level=3"
-                support_lib = os.getenv("SUPPORT_LIB")
-                if not os.path.exists(support_lib):
-                    raise FileNotFoundError(
-                        errno.ENOENT, os.strerror(errno.ENOENT), support_lib
-                    )
                 compiler = nvgpucompiler.NvgpuCompiler(
-                    options, opt_level=3, shared_libs=[support_lib]
+                    NVDSL.pipeline_options, opt_level=3, shared_libs=NVDSL.shared_libs
                 )
                 engine = compiler.compile_and_jit(module)
 
-            # Convert input arguments to MLIR arguments
-            newArgs = get_mlir_func_obj_ty(args)
+                # Convert input arguments to MLIR arguments
+                newArgs = get_mlir_func_obj_ty(args)
 
-            # Run the compiled program
-            engine.invoke(function_name, *newArgs)
+                if NVDSL.compile_only:
+                    return engine, (function_name, newArgs)
+                else:
+                    # CRITICAL: Initialize ExecutionEngine before invoking
+                    # This runs global constructors which load GPU binaries via cuModuleLoadJIT
+                    engine.initialize()
 
-            return result
+                    # Run the compiled program
+                    engine.invoke(function_name, *newArgs)
+
+                    return result
 
         return wrapper
